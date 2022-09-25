@@ -7,13 +7,10 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntitySpawnEvent;
-import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.world.ChunkLoadEvent;
 
-public class MainEvent implements Listener {
+public class NewEntityEvent implements Listener {
     private final CustomEntity customEntity = new CustomEntity();
-    private final NewPlayerEvent newPlayerEvent = new NewPlayerEvent();
-
     @EventHandler
     public void entitySpawnEvent(EntitySpawnEvent event) {
         if(event.getEntity() instanceof LivingEntity && !(event.getEntity() instanceof Player)) {
@@ -28,10 +25,5 @@ public class MainEvent implements Listener {
                 customEntity.setData((LivingEntity) entity);
             }
         }
-    }
-
-    @EventHandler
-    public void playerDeathEvent(PlayerDeathEvent event) {
-        newPlayerEvent.newPlayerDeathEvent(event);
     }
 }

@@ -1,6 +1,8 @@
 package halfSurvival.event;
 
 import doublePlugin.util.DoubleMath;
+import halfSurvival.HalfSurvival;
+import halfSurvival.item.enchant.CustomEnchant;
 import halfSurvival.item.enchant.HalfSurvivalEnchant;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.enchantments.EnchantmentOffer;
@@ -24,37 +26,54 @@ public class NewEnchantEvent implements Listener {
     public void newEnchantEvent(EnchantItemEvent event) {
         Map<Enchantment, Integer> enchantMap = event.getEnchantsToAdd();
         ItemStack itemStack = event.getItem();
+        int size = enchantMap.size();
         int costLevel = event.getExpLevelCost();
         enchantMap.clear();
 
-        double per = 1;
-        int num = 0;
-        while (!DoubleMath.per(per)) {
+        double per = 100;
+        while (DoubleMath.per(per)) {
 
+            int infiniteCheck = 0;
             while (true) {
                 Enchantment[] enchantments = Enchantment.values();
                 Enchantment enchantment = enchantments[DoubleMath.rand(enchantments.length)];
 
                 if (enchantment.canEnchantItem(event.getItem())) {
-                    if (itemStack.getEnchantmentLevel(enchantment) <= 0) {
-                        int enchantmentMaxLevel = enchantment.getMaxLevel();
-                        int enchantmentLevel = DoubleMath.rand(enchantmentMaxLevel) + 1;
 
-                        if (enchantmentLevel != enchantmentMaxLevel) {
-                            if (DoubleMath.per(costLevel * 0.03)) {
-                                enchantmentLevel++;
+                    if (itemStack.getEnchantmentLevel(enchantment) <= 0) {
+
+                        if (!enchantMap.containsKey(enchantment)) {
+
+                            if (!enchantment.isCursed()) {
+                                int enchantmentMaxLevel = enchantment.getMaxLevel();
+                                int enchantmentLevel = DoubleMath.rand(enchantmentMaxLevel) + 1;
+
+                                if (enchantmentLevel != enchantmentMaxLevel) {
+                                    if (DoubleMath.per(costLevel * 0.03)) {
+                                        enchantmentLevel++;
+                                    }
+                                }
+
+                                if (enchantment instanceof CustomEnchant) {
+                                    CustomEnchant customEnchant = (CustomEnchant) enchantment;
+                                    customEnchant.unSafeEnchantItem(itemStack, enchantmentLevel);
+                                    HalfSurvival.sendLog("CustomEnchant - " + customEnchant.getName() + " : " + enchantmentLevel);
+                                } else {
+                                    itemStack.addUnsafeEnchantment(enchantment, enchantmentLevel);
+                                    HalfSurvival.sendLog("Enchant - " + enchantment.getName() + " : " + enchantmentLevel);
+                                }
+                                break;
                             }
                         }
-
-                        enchantMap.put(enchantment, enchantmentLevel);
-                        break;
                     }
+                }
+
+                if (++infiniteCheck >= 300) {
+                    break;
                 }
             }
 
-            per -= 0.03 * (30 - costLevel);
-            num++;
+            per -= 20 * (7 - (costLevel * 0.2));
         }
-
     }
 }

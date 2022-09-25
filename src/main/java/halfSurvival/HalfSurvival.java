@@ -4,7 +4,9 @@ import halfSurvival.command.AbstractCommand;
 import halfSurvival.command.TestCommand;
 import halfSurvival.event.NewBlockBreakEvent;
 import halfSurvival.event.NewEnchantEvent;
+import halfSurvival.event.NewEntityEvent;
 import halfSurvival.item.enchant.HalfSurvivalEnchant;
+import halfSurvival.item.itemList.InvSaveCoupon;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
@@ -18,9 +20,10 @@ public final class HalfSurvival extends JavaPlugin {
     @Override
     public void onEnable() {
         HalfSurvival.plugin = Bukkit.getPluginManager().getPlugin(pluginName);
-        HalfSurvivalEnchant.BLAST_FURNACE.getName();
+        HalfSurvivalEnchant.load();
         registerCommand();
         registerEvent();
+        itemLoad();
         sendLog("§9§m                              ");
         sendLog("");
         sendLog("§9" + pluginName + " enable");
@@ -39,6 +42,12 @@ public final class HalfSurvival extends JavaPlugin {
         sendLog("§9§m                              ");
     }
 
+    private void itemLoad() {
+        new InvSaveCoupon();
+
+        HalfSurvival.sendLog("Item load");
+    }
+
 
 
     public void setCommand(AbstractCommand command) {
@@ -50,6 +59,7 @@ public final class HalfSurvival extends JavaPlugin {
 
     public void registerEvent() {
         PluginManager pm = Bukkit.getServer().getPluginManager();
+        pm.registerEvents(new NewEntityEvent(), this);
         pm.registerEvents(new NewBlockBreakEvent(), this);
         pm.registerEvents(new NewEnchantEvent(), this);
     }

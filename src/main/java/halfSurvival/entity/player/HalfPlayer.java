@@ -9,6 +9,7 @@ import java.util.UUID;
 
 public class HalfPlayer extends HalfPlayerEx {
     private static final HashMap<UUID, HalfPlayer> halfPlayerMap = new HashMap<>();
+    private static final String INV_SAVE_COUNT = "invSaveCount";
 
     public static HalfPlayer getHalfPlayer(Player player) {
         return getHalfPlayer(NewPlayer.getNewPlayer(player));
@@ -22,6 +23,7 @@ public class HalfPlayer extends HalfPlayerEx {
 
         return halfPlayerMap.get(uuid);
     }
+
     private HalfPlayer(NewPlayer player) {
         super(player);
         ScoreBoardHelper scoreBoard = super.getScoreBoardHelper();
@@ -33,5 +35,15 @@ public class HalfPlayer extends HalfPlayerEx {
         scoreBoard.setSlot(1, "§f§m                          ");
     }
 
+    public void setInvSaveCount(int count) {
+        super.setIntegerValue(INV_SAVE_COUNT, count);
+    }
 
+    public int getInvSaveCount() {
+        return super.getIntegerValue(INV_SAVE_COUNT);
+    }
+
+    public void addInvSaveCount(int count) {
+        this.addIntegerValue(INV_SAVE_COUNT, count);
+    }
 }

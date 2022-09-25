@@ -1,6 +1,5 @@
 package halfSurvival.item.enchant;
 
-import doublePlugin.item.ItemFunc;
 import halfSurvival.HalfSurvival;
 import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
@@ -49,6 +48,6 @@ public class BlastFurnace extends CustomEnchant {
 
     @Override
     public boolean canEnchantItem(ItemStack item) {
-        return ItemFunc.checkPickaxe(item.getType());
+        return true;//ItemFunc.checkPickaxe(item.getType());
     }
 }

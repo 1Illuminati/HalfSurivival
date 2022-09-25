@@ -17,8 +17,6 @@ public class TestCommand extends AbstractCommand {
     public void command(CommandSender sender, String label, String[] args) {
         NewPlayer player = NewPlayer.getNewPlayer((Player) sender);
         ItemStack itemStack = player.getItemInHand();
-        Bukkit.broadcastMessage("테스트");
-        itemStack.addEnchantment(HalfSurvivalEnchant.BLAST_FURNACE, 3);
         Bukkit.broadcastMessage(itemStack.toString());
     }
 }

@@ -2,84 +2,94 @@ package halfSurvival.entity;
 
 import doublePlugin.util.DoubleMath;
 import halfSurvival.HalfSurvival;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.attribute.Attribute;
-import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.block.Biome;
 import org.bukkit.entity.*;
 import org.bukkit.metadata.FixedMetadataValue;
-
-import java.util.Random;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 
 public class CustomEntity {
-    public final FixedMetadataValue BOSS_METADATA = new FixedMetadataValue(HalfSurvival.getPlugin(), MobType.BOSS);
-    public final FixedMetadataValue MIDDLE_BOSS_METADATA = new FixedMetadataValue(HalfSurvival.getPlugin(), MobType.MIDDLE_BOSS);
-    public final FixedMetadataValue MINI_BOSS_METADATA = new FixedMetadataValue(HalfSurvival.getPlugin(), MobType.MINI_BOSS);
-    public final FixedMetadataValue NORMAL_METADATA = new FixedMetadataValue(HalfSurvival.getPlugin(), MobType.NORMAL);
-    private final Random rand = new Random();
+    private static final String MOB_TYPE = "mobType";
     public void setData(LivingEntity livingEntity) {
         if(livingEntity instanceof Player) {
             return;
         }
 
         EntityType type = livingEntity.getType();
-        int atkAmp = 1;
-        int healthAmp = 1;
-        switch(type) {
-            case ENDER_DRAGON:
-            case WITHER:
-            case WARDEN:
-                livingEntity.setMetadata("MobType", BOSS_METADATA);
-            break;
-            case ELDER_GUARDIAN:
-            case RAVAGER:
-            case IRON_GOLEM:
-                atkAmp = 3;
-                healthAmp = 5;
-                livingEntity.setMetadata("MobType", MIDDLE_BOSS_METADATA);
-            break;
-            default :
-                if(DoubleMath.per(0.2)) {
-                    atkAmp = 2;
-                    healthAmp = 3;
-                    livingEntity.setMetadata("MobType", MINI_BOSS_METADATA);
-
-                } else {
-                    livingEntity.setMetadata("MobType", NORMAL_METADATA);
-                }
-        }
-
         int level = getLevel(livingEntity);
-        double maxHealth = livingEntity.getMaxHealth();
-        livingEntity.setMaxHealth((level - 1) * 5 * healthAmp + maxHealth);
+        MobType mobType = getMobType(type);
+        Location loc = livingEntity.getLocation();
+        livingEntity.setMetadata(MOB_TYPE, mobType.fixedMetadataValue);
+        livingEntity.setMaxHealth((level - 1) * 3 * mobType.healthAmplifier + livingEntity.getMaxHealth());
         livingEntity.setHealth(livingEntity.getMaxHealth());
-        AttributeInstance atkInstance = livingEntity.getAttribute(Attribute.GENERIC_ATTACK_DAMAGE);
-        atkInstance.setBaseValue(atkInstance.getBaseValue() + ((level - 1) * atkAmp));
+        livingEntity.setCustomNameVisible(true);
+        livingEntity.setCustomName("§" + mobType.color + " Lv : " + level + " " + livingEntity.getType());
+
+        if (mobType == MobType.MINI_BOSS) {
+            livingEntity.addPotionEffect(new PotionEffect(PotionEffectType.GLOWING, Integer.MAX_VALUE, 1));
+            Bukkit.broadcastMessage("§c§m          §c 미니보스 스폰! §c§m          ");
+            Bukkit.broadcastMessage("");
+            Bukkit.broadcastMessage("");
+            Bukkit.broadcastMessage("§c" + loc.getBlockX() + " " + loc.getBlockY() + " " + loc.getBlockZ() + " 에 미니보스가 스폰되었습니다！");
+            Bukkit.broadcastMessage("");
+            Bukkit.broadcastMessage("");
+            Bukkit.broadcastMessage("§c§m          §c 미니보스 스폰! §c§m          ");
+        }
+    }
+
+    private MobType getMobType(EntityType entityType) {
+        switch(entityType) {
+            case ENDER_DRAGON, WITHER, WARDEN -> {
+                return MobType.BOSS;
+            }
+            case ELDER_GUARDIAN, RAVAGER, IRON_GOLEM -> {
+                return MobType.MIDDLE_BOSS;
+            }
+            default -> {
+                if(DoubleMath.per(0.2)) {
+                    return MobType.MINI_BOSS;
+                } else {
+                    return MobType.NORMAL;
+                }
+            }
+        }
     }
 
     private int getLevel(LivingEntity livingEntity) {
         Location loc = livingEntity.getLocation();
-        Biome biome = loc.getWorld().getBiome(loc);
-        int result = 0;
+        int result = getBiomeLevel(loc.getWorld().getBiome(loc));
 
-        if(livingEntity instanceof Animals || livingEntity instanceof Villager) {
+        if (loc.getY() <= 48) {
+            result = (int) (DoubleMath.rand(3) + 50 + (10 * (loc.getY() / -16)));
+        }
+
+        if (livingEntity instanceof Animals || livingEntity instanceof Villager) {
             if(!(livingEntity instanceof Hoglin)) {
-                return rand.nextInt(5) + 1;
+                result =  DoubleMath.rand(5) + 1;
             }
-        } else if(livingEntity instanceof Fish) {
-            return DoubleMath.rand(5) + 1;
+        } else if (livingEntity instanceof Fish) {
+            result =  DoubleMath.rand(5) + 1;
         }
 
-        if(loc.getY() < 60) {
-            return DoubleMath.rand(10) + 10;
+        switch (livingEntity.getType()) {
+            case WITHER -> result = 80;
+            case ENDER_DRAGON -> result = 100;
+            case WARDEN -> result = 120;
+            case ELDER_GUARDIAN -> result = 60;
+            case RAVAGER, IRON_GOLEM -> result = 40;
         }
 
-        switch(biome) {
+        return result;
+    }
+
+    public int getBiomeLevel(Biome biome) {
+        switch (biome) {
             case BAMBOO_JUNGLE :
             case BASALT_DELTAS :
             case BEACH :
             case BIRCH_FOREST :
-
             case CRIMSON_FOREST :
             case CUSTOM :
             case DARK_FOREST :
@@ -97,7 +107,6 @@ public class CustomEntity {
             case END_MIDLANDS :
             case FLOWER_FOREST :
             case FOREST :
-
             case FROZEN_PEAKS :
             case FROZEN_RIVER :
             case GROVE :
@@ -140,15 +149,31 @@ public class CustomEntity {
             case WINDSWEPT_SAVANNA :
             case ERODED_BADLANDS :
             case BADLANDS :
-            case WOODED_BADLANDS : result += 10; break;
+            case WOODED_BADLANDS : return 10;
             default :
                 throw new IllegalStateException("Unexpected value: " + biome);
         }
-
-        return result;
     }
 
     public enum MobType {
-        NORMAL, MINI_BOSS, MIDDLE_BOSS, BOSS;
+        NORMAL(1, 1, 'f'), MINI_BOSS(3, 2, 'a'), MIDDLE_BOSS(5, 3, '9'), BOSS(10, 5, '4');
+
+        public final FixedMetadataValue fixedMetadataValue = new FixedMetadataValue(HalfSurvival.getPlugin(), this);
+        public final int healthAmplifier;
+        public final int attackAmplifier;
+        public final char color;
+
+        MobType(int healthAmplifier, int attackAmplifier, char color) {
+            this.healthAmplifier = healthAmplifier;
+            this.attackAmplifier = attackAmplifier;
+            this.color = color;
+        }
+        public static MobType getMobType(LivingEntity livingEntity) {
+            if(livingEntity.hasMetadata(MOB_TYPE)) {
+                return (MobType) livingEntity.getMetadata(MOB_TYPE).get(0).value();
+            } else {
+                return null;
+            }
+        }
     }
 }
